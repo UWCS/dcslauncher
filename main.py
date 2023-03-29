@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from shutil import which
 import json
 import subprocess
