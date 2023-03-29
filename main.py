@@ -171,5 +171,8 @@ if __name__ == "__main__":
     win = MyWindow()
     win.connect("delete-event", win.quit)
     win.show_all()
-    win.listbox.unselect_all()
+    try:
+        win.listbox.unselect_all()
+    except:
+        pass
     Gtk.main()
