@@ -604,7 +604,9 @@ dependencies = [
 
 [[package]]
 name = "dcspkg"
-version = "0.2.0"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc0d12ddaf14304388f60f2613758007fa5af766d2a82a2cc352bd83857ba404"
 dependencies = [
  "anyhow",
  "bytes",

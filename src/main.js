@@ -12,6 +12,11 @@ let button_text = {
 // while a game is installing.
 let lockout_selector = false;
 
+function set_error(msg) {
+  let descriptionEl = document.querySelector("#description");
+  descriptionEl.textContent = msg;
+}
+
 async function action_game() {
   let gamesListEl = document.querySelector("#games-list");
   let actionButtonEl = document.querySelector("#action-game");
@@ -27,7 +32,8 @@ async function action_game() {
     // Trigger game install. The Rust code for this spawns a new
     // thread which, when complete, will cause the promise 
     // returned by invoke to complete, triggering the then call.
-    invoke("install_game", { pkgname: pkgname }).then(() => {
+    invoke("install_game", { pkgname: pkgname })
+    .then(() => {
       // Manually set installed in the games list so that the rest
       // of the UI code works properly without reloading the full
       // games list.
@@ -40,40 +46,49 @@ async function action_game() {
       // Since the selected game has now been installed, this button
       // will trigger play instead of install.
       actionButtonEl.textContent = button_text["play"];
-    });
+    })
+    .catch(set_error);
   } else {
     // This includes a .exec call so this application closes
     // at this point.
-    await invoke("run_game", { pkgname: pkgname });
+    invoke("run_game", { pkgname: pkgname })
+    .then(() => {})
+    .catch(set_error);
   }
 }
 
 async function load_games_list() {
-  let games_list_all = await invoke("get_all_games");
-  let games_list_installed = await invoke("get_installed_games");
+  Promise.all([
+    invoke("get_all_games"),
+    invoke("get_installed_games")
+  ]).then((results) => {
+    let games_list_all = results[0];
+    let games_list_installed = results[1];
 
-  // Convert input lists to a dict containing the relevant information
-  // and whether the game is installed or not.
-  for (let i = 0; i < games_list_all.length; i++) {
-    let name = games_list_all[i].pkgname;
-    games_list[name] = games_list_all[i];
-    games_list[name].installed = false;
-  }
+    // Convert input lists to a dict containing the relevant information
+    // and whether the game is installed or not.
+    for (let i = 0; i < games_list_all.length; i++) {
+      let name = games_list_all[i].pkgname;
+      games_list[name] = games_list_all[i];
+      games_list[name].installed = false;
+    }
 
-  for (let i = 0; i < games_list_installed.length; i++) {
-    let name = games_list_installed[i].pkgname;
-    games_list[name].installed = true;
-  }
+    for (let i = 0; i < games_list_installed.length; i++) {
+      let name = games_list_installed[i].pkgname;
+      games_list[name].installed = true;
+    }
 
-  // Populate select with the available games.
-  let gamesListEl = document.querySelector("#games-list");
+    // Populate select with the available games.
+    let gamesListEl = document.querySelector("#games-list");
 
-  for (let name in games_list) {
-    let node = document.createElement("option");
-    node.textContent = games_list[name].fullname;
-    node.value = games_list[name].pkgname;
-    gamesListEl.add(node);
-  }
+    for (let name in games_list) {
+      let node = document.createElement("option");
+      node.textContent = games_list[name].fullname;
+      node.value = games_list[name].pkgname;
+      gamesListEl.add(node);
+    }
+  })
+  .catch(set_error);
 }
 
 async function game_list_clicked() {
