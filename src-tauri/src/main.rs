@@ -8,12 +8,12 @@ use dcspkg::{install_package, list_all_packages, run_package};
 use dcspkg::util::list_installed_packages;
 
 // TODO
-// lazy_static::lazy_static! {
-//     static ref DCSPKG_CONFIG: dcspkg::config::DcspkgConfig = match dcspkg::config::DcspkgConfig::get() {
-//         Ok(a) => a,
-//         Err(_) => dcspkg::config::DcspkgConfig::default(),
-//     };
-// }
+lazy_static::lazy_static! {
+    static ref DCSPKG_CONFIG: Result<DcspkgConfig, String> = match dcspkg::config::DcspkgConfig::get() {
+        Ok(c) => Ok(c),
+        Err(_) => Err("Failed to get or create config file".to_string()),
+    };
+}
 
 // This should be replaced with the lazy_static call above but I can't
 // figure out how to get the types to work.
@@ -27,7 +27,8 @@ fn get_config() -> Result<DcspkgConfig, String> {
 // Forwarding functions to connect the JS code to dcspkg.
 #[tauri::command]
 fn get_all_games() -> Result<Vec<Package>, String> {
-    let c = get_config()?;
+    // https://www.reddit.com/r/rust/comments/pejdat/weird_syntax_using_lazy_static_am_i_doing/
+    let c = (*DCSPKG_CONFIG).clone()?;
     match list_all_packages(c.server.url) {
         Ok(v) => Ok(v),
         Err(e) => Err(format!("Failed to get games list\n\n{}", e.to_string())),
@@ -47,12 +48,13 @@ fn get_installed_games() -> Result<Vec<Package>, String> {
 }
 
 #[tauri::command(async)]
-fn install_game(pkgname: String) -> Result<(), String> {
+fn install_game(pkgname: &str) -> Result<(), String> {
     let c = get_config()?;
-    let pkgname2 = pkgname.clone();
+    let pkgname_str = String::from(pkgname);
+    let pkgname_str2 = pkgname_str.clone();
     match std::thread::spawn(move || {
         install_package(
-            &pkgname,
+            &pkgname_str,
             c.server.url,
             c.registry.install_dir,
             c.registry.bin_dir,
@@ -65,20 +67,20 @@ fn install_game(pkgname: String) -> Result<(), String> {
         Err(_e) => Err(
             format!(
                 "Failed to install {}",
-                pkgname2,
-                // e.as_ref().
+                pkgname_str2
             )
         ),
     }
 }
 
 #[tauri::command]
-fn run_game(pkgname: String) -> Result<(), String> {
+fn run_game(pkgname: &str) -> Result<(), String> {
     let c = get_config()?;
-    let pkgname2 = pkgname.clone();
-    match run_package(&c.registry.registry_file, c.registry.install_dir, &pkgname) {
+    let pkgname_str = String::from(pkgname);
+    let pkgname_str2 = pkgname_str.clone();
+    match run_package(&c.registry.registry_file, c.registry.install_dir, &pkgname_str) {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("Failed to run {}\n\n{}", pkgname2, e.to_string())),
+        Err(e) => Err(format!("Failed to run {}\n\n{}", pkgname_str2, e.to_string())),
     }
 }
 
