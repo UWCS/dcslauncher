@@ -42,7 +42,7 @@ jobs:
     - name: Build Rust Tauri Application
       run: |
         source $HOME/.cargo/env
-        cargo tauri build
+        cargo tauri build --verbose
 
     # Upload the built artifacts
     - name: Upload artifacts
