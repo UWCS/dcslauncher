@@ -34,7 +34,9 @@ jobs:
 
     # Install tauri-bundler
     - name: Install tauri-bundler
-      run: cargo install tauri-bundler
+      run: | 
+        source $HOME/.cargo/env
+        cargo install tauri-bundler
 
     # Build the Rust Tauri application
     - name: Build Rust Tauri Application
