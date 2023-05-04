@@ -1,34 +1,51 @@
-name: 'publish'
+# Curtosy of ApolloGPT5
+name: Build Rust Tauri Application
+
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [alpine-latest]
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:latest
 
-    runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-#       - name: install dependencies (ubuntu only)
-#         if: matrix.platform == 'ubuntu-20.04'
-#         run: |
-#           sudo apt-get update
-#           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false
+    # Checks out a copy of your repository
+    - name: Checking out repository
+      uses: actions/checkout@v2
+
+    # Install dependencies
+    - name: Install required packages
+      run: |
+        dnf -y groupinstall "Development Tools"
+        dnf -y install openssl-devel
+    
+    # Install rustup and stable Rust
+    - name: Install Rust
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain stable -y
+        source $HOME/.cargo/env
+
+    # Install tauri-bundler
+    - name: Install tauri-bundler
+      run: cargo install tauri-bundler
+
+    # Build the Rust Tauri application
+    - name: Build Rust Tauri Application
+      run: |
+        source $HOME/.cargo/env
+        cd src-tauri
+        cargo tauri build
+
+    # Upload the built artifacts
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: built-app
+        path: src-tauri/target/release/bundle/*/*.*
