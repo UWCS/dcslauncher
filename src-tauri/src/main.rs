@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use anyhow::Result;
-use dcspkg::config::DcspkgConfig;
+use dcspkg::config::{DcspkgConfig, DCSPKG_DIR};
 use dcspkg::Package;
 use dcspkg::{install_package, list_all_packages, run_package};
 use dcspkg::util::list_installed_packages;
@@ -85,6 +85,23 @@ fn run_game(pkgname: &str) -> Result<(), String> {
 }
 
 fn main() {
+    // Copied from the dcspkg binary initialisation.
+    // This could be moved into the dcspkg library at
+    // some point.
+
+    //create the dcspkg directory
+    std::fs::create_dir_all(&*DCSPKG_DIR)?;
+
+    //load config
+    let config = DcspkgConfig::get()?;
+
+    //create registry file if not exist
+    if !config.registry.registry_file.is_file() {
+        std::fs::write(&config.registry.registry_file, "[]")
+            .context("Could not create empty package registry file")?;
+    }
+
+    // Init Tauri
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_all_games,
