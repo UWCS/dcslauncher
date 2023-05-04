@@ -24,7 +24,7 @@ jobs:
     - name: Install required packages
       run: |
         dnf -y groupinstall "Development Tools"
-        dnf -y install openssl-devel glib2-devel gtk3-devel libsoup-devel
+        dnf -y install openssl-devel glib2-devel gtk3-devel libsoup-devel webkit2gtk3-devel webkitgtk4-devel cairo-devel pango-devel atk-devel gdk-pixbuf2-devel
     
     # Install rustup and stable Rust
     - name: Install Rust
