@@ -32,17 +32,16 @@ jobs:
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain stable -y
         source $HOME/.cargo/env
 
-    # Install tauri-bundler
-    - name: Install tauri-bundler
+    # Install tauri-cli
+    - name: Install tauri-cli
       run: | 
         source $HOME/.cargo/env
-        cargo install tauri-bundler
+        cargo install tauri-cli
 
     # Build the Rust Tauri application
     - name: Build Rust Tauri Application
       run: |
         source $HOME/.cargo/env
-        cd src-tauri
         cargo tauri build
 
     # Upload the built artifacts
