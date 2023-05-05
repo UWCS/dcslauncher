@@ -1,0 +1,52 @@
+# Curtosy of ApolloGPT5
+name: Build Rust Tauri Application
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux/rockylinux:latest
+
+    steps:
+    # Checks out a copy of your repository
+    - name: Checking out repository
+      uses: actions/checkout@v2
+
+    # Install dependencies
+    - name: Install required packages
+      run: |
+        dnf -y groupinstall "Development Tools"
+        dnf -y install wget openssl-devel glib2-devel gtk3-devel libsoup-devel webkit2gtk3-devel webkitgtk4-devel cairo-devel pango-devel atk-devel gdk-pixbuf2-devel librsvg2-devel
+    
+    # Install rustup and stable Rust
+    - name: Install Rust
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain stable -y
+        source $HOME/.cargo/env
+
+    # Install tauri-cli
+    - name: Install tauri-cli
+      run: | 
+        source $HOME/.cargo/env
+        cargo install tauri-cli
+
+    # Build the Rust Tauri application
+    - name: Build Rust Tauri Application
+      run: |
+        source $HOME/.cargo/env
+        cargo tauri build --verbose
+
+    # Upload the built artifacts
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: built-app
+        path: src-tauri/target/release/bundle/appimage/dcslauncher_*.AppImage
