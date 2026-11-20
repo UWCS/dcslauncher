@@ -1,25 +1,19 @@
 [package]
 name = "dcslauncher"
-version = "0.0.1"
+version = "0.1.0"
 description = "A GUI launcher for UWCS's dcspkg application"
-authors = ["you"]
-license = ""
-repository = ""
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+rust-version = "1.100"
+repository = "https://github.com/UWCS/dcslauncher"
 
 [build-dependencies]
-tauri-build = { version = "1.2", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "1.2", features = ["shell-open"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-which = "4.4.0"
-lazy_static = "1.4.0"
-anyhow = "1.0.70"
-dcspkg = "0.2.1"
+tauri = { version = "2", features = [] }
+lazy_static = "1.5"
+anyhow = "1"
+dcspkg = { git = "https://github.com/UWCS/dcspkg.git", branch = "main" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
